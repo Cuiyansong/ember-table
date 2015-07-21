@@ -164,14 +164,6 @@ var LazyGroupRowArray = Ember.ArrayProxy.extend({
     });
   },
 
-  updatePlaceHolderWithError: function () {
-    var _content = this.get('_content');
-    var lastObject = _content.get('lastObject');
-    if (lastObject.get('isLoading')) {
-      lastObject.set('isError', true);
-    }
-  },
-
   length: Ember.computed.oneWay('_content.length'),
 
   isCompleted: Ember.computed(function(){
