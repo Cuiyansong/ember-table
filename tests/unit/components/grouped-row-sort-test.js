@@ -47,7 +47,7 @@ moduleForEmberTable("Given a table with chunked partial group row data", functio
 
 test('sort partial data of grouped row', function (assert) {
   var defers = DeferPromises.create({count: 4});
-  var testOptions = {id:"tttt"};
+  var testOptions = {};
   var provider = GroupedRowDataProvider.create({
     defers: defers,
     groupingMetadata: [{id: 'accountSection'}, {id: 'accountType'}],
