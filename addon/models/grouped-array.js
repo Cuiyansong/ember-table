@@ -3,19 +3,22 @@ import TableContent from './table-content';
 
 var GroupedArray = TableContent.extend({
 
+  root: null,
   groupingLevel: 0,
 
   init: function () {
     this.wrapSubChildren();
   },
 
-  groupingMetadata: Ember.computed(function (key, value) {
-    return value || this.get('content.groupingMetadata') || this.get('parent.groupingMetadata');
-  }).property('parent.groupingMetadata'),
+  sortingColumns: Ember.computed.oneWay('root.sortingColumns'),
 
-  _sortConditions: Ember.computed(function (key, value) {
-    return value || this.get('parent._sortConditions');
-  }).property('parent._sortConditions'),
+  groupingMetadata: Ember.computed(function () {
+    if (this.get('groupingLevel') === 0) {
+      return this.get('content.groupingMetadata');
+    } else {
+      return this.get('root.groupingMetadata');
+    }
+  }).property('root.groupingMetadata', 'content.groupingMetadata'),
 
   wrapSubChildren: function () {
     var self = this;
@@ -26,7 +29,7 @@ var GroupedArray = TableContent.extend({
         Ember.set(item, 'children', GroupedArray.create({
           content: children,
           groupingLevel: self.groupingLevel + 1,
-          parent: self
+          root: self.get('root') || self
         }));
       }
     });
@@ -42,11 +45,7 @@ var GroupedArray = TableContent.extend({
       return content;
     }
     return this._super();
-  }).property('_sortConditions'),
-
-  objectAt: function (index) {
-    return this.get('_content').objectAt(index);
-  }
+  }).property('sortingColumns')
 });
 
 export default GroupedArray;

@@ -23,12 +23,7 @@ var LazyGroupRowArray = Ember.ArrayProxy.extend({
   },
 
   loadOneChunk: function(chunkIndex) {
-    var query = {};
-    Ember.setProperties(query, this.get('parentQuery'));
-    if(this.get('isLeafParent') && this.get('_sortConditions.sortDirect')){
-      Ember.setProperties(query, Ember.getProperties(this.get('_sortConditions'), 'sortName', 'sortDirect'));
-    }
-    return this.loadChildren(chunkIndex, query);
+    return this.loadChildren(chunkIndex, this.get('parentQuery'));
   },
 
   wrapLoadedContent: function (row) {
@@ -40,7 +35,6 @@ var LazyGroupRowArray = Ember.ArrayProxy.extend({
         content: row,
         loadChildren: this.loadChildren,
         onLoadError: this.onLoadError,
-        parent: this,
         parentQuery: this.get('parentQuery'),
         status: this.get('status'),
         root: this.get('root') || this
@@ -76,9 +70,6 @@ var LazyGroupRowArray = Ember.ArrayProxy.extend({
     return content;
   }).property('sortingColumns'),
 
-  // As a root data provider, `_sortConditions` should be set when sort.
-  // TODO: remove _sortConditions after partial sort is completed.
-  _sortConditions: Ember.computed.oneWay('root._sortConditions'),
   sortingColumns: Ember.computed.oneWay('root.sortingColumns'),
 
   /*---------------Override ArrayProxy -----------------------*/

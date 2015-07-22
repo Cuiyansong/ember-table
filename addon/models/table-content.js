@@ -1,17 +1,15 @@
 import Ember from 'ember';
 
 export default Ember.ArrayProxy.extend({
+
   groupingMetadata: Ember.computed.alias('content.groupingMetadata'),
-
   grandTotalTitle: Ember.computed.alias('content.grandTotalTitle'),
-
-  _sortConditions: null,
-  sortingColumns: null,
   loadGrandTotal: Ember.computed.alias('content.loadGrandTotal'),
 
-  _content: Ember.computed(function() {
-    var sortDirect = this.get('_sortConditions.sortDirect');
-    var sortFn = this.get('_sortConditions.sortFn');
+  // This property contains all sorted columns.
+  sortingColumns: null,
+
+  _content: Ember.computed(function () {
     var content = this.get('content');
     var sortingColumns = this.get('sortingColumns');
     if (sortingColumns && sortingColumns.get('isNotEmpty')) {
@@ -19,14 +17,11 @@ export default Ember.ArrayProxy.extend({
         return sortingColumns.sortBy(prev, next);
       });
     } else {
-      if(sortDirect){
-        return content.slice().sort(sortFn);
-      }
       return content.slice();
     }
-  }).property('sortingColumns', '_sortConditions'),
+  }).property('sortingColumns'),
 
-  objectAt: function(index){
+  objectAt: function (index) {
     return this.get('_content').objectAt(index);
   }
 });

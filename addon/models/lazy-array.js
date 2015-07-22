@@ -6,7 +6,6 @@ export default Ember.ArrayProxy.extend({
 
   loadingCount: 0,
 
-  _sortConditions: {},
   sortingColumns: null,
 
   // Function to get next chunk of rows.

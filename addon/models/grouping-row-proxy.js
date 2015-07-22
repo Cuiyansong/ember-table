@@ -30,17 +30,15 @@ var GroupRowProxy = Ember.ObjectProxy.extend({
   }).property('content'),
 
   children: Ember.computed(function () {
-    var lazyArray = LazyGroupRowArray.create({
+    return LazyGroupRowArray.create({
       loadChildren: this.loadChildren,
       onLoadError: this.onLoadError,
       groupingLevel: this.get('groupingLevel') + 1,
       groupingMetadata: this.get('groupingMetadata'),
       parentQuery: this.get('selfQuery'),
-      parent: this,
       status: this.get('status'),
       root: this.get('root')
     });
-    return lazyArray;
   }).property(),
 
   groupName: Ember.computed(function() {
@@ -51,7 +49,6 @@ var GroupRowProxy = Ember.ObjectProxy.extend({
     return "";
   }).property('groupingName', 'content'),
 
-  _sortConditions: Ember.computed.oneWay('root._sortConditions'),
   sortingColumns: Ember.computed.oneWay('root.sortingColumns')
 });
 
