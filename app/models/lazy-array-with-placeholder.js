@@ -1,0 +1,1 @@
+export { default } from 'ember-table/models/lazy-array-with-placeholder';
