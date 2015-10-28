@@ -26,7 +26,7 @@ export default TableCell.extend(
   _defaultGroupIndicatorViewName: 'grouped-row-indicator',
 
   hasChildren: Ember.computed(function() {
-    return this.get('row.hasChildren') || this.get('groupingLevel') < this.get('tableComponent.groupingMetadata.length') - 1;
+    return this.get('row.hasChildren') || this.get('expandLevel') < this.get('tableComponent.groupingMetadata.length');
   }).property('groupingLevel', 'tableComponent.groupingMetadata.length'),
 
   expandLevel: Ember.computed.oneWay('row.expandLevel'),
@@ -34,7 +34,9 @@ export default TableCell.extend(
   groupingLevel: Ember.computed(function() {
     var hasGrandTotalRow = this.get('tableComponent.hasGrandTotalRow');
     var expandLevel = this.get('expandLevel');
-    return hasGrandTotalRow? expandLevel - 1: expandLevel;
+    var newVar = hasGrandTotalRow ? expandLevel - 1 : expandLevel;
+    console.log('groupingLevel', newVar, this.get('tableComponent.groupingMetadata.length') - 1);
+    return newVar;
   }).property('expandLevel', 'tableComponent.hasGrandTotalRow'),
 
   actions: {

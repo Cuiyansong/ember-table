@@ -8,6 +8,8 @@ import GroupRow from 'ember-table/controllers/group-row';
 import ColumnDefinition from 'ember-table/models/column-definition';
 import SortingColumns from 'ember-table/models/sorting-columns';
 import computed from 'ember-new-computed';
+import Tree from 'ember-table/models/tree';
+import TreeRootController from 'ember-table/controllers/tree-root';
 
 export default Ember.Component.extend(
 StyleBindingsMixin, ResizeHandlerMixin, {
@@ -310,10 +312,21 @@ StyleBindingsMixin, ResizeHandlerMixin, {
   });
   }).property('content'),
 
+  treeContent: Ember.computed('content', function () {
+    return TreeRootController.create({
+      content: this.get('content'),
+      itemController: GroupRow,
+      target: this,
+      parentController: this,
+      container: this.get('container')
+    });
+  }),
+
   // An array of Ember.Table.Row computed based on `content`
   bodyContent: Ember.computed(function() {
     if (this.get('_hasGroupingColumn')) {
-      return this.get('_groupedRowController');
+      //return this.get('_groupedRowController');
+      return this.get('treeContent');
     }
     return RowArrayController.create({
       target: this,

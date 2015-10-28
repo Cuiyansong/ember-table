@@ -4,33 +4,42 @@ import moduleForEmberTable from '../../helpers/module-for-ember-table';
 import EmberTableFixture from '../../fixture/ember-table';
 import EmberTableHelper from '../../helpers/ember-table-helper';
 import DeferPromises from '../../fixture/defer-promises';
+import Tree from 'ember-table/models/tree';
 
-moduleForEmberTable('Given a table with chunked group row data',
-  function (defers) {
-    var chunkSize = 5;
-    return EmberTableFixture.create({
-      height: 600,
-      width: 700,
-      groupMeta: {
-        loadChildren: function getChunk(chunkIndex, parentQuery) {
+moduleForEmberTable('Given a table with chunked group row data', function (defers) {
+  var chunkSize = 5;
+  return EmberTableFixture.create({
+    height: 600,
+    width: 700,
+    content: Tree.create({
+      meta: {
+        load: function getChunk(chunkIndex, parentQuery) {
           var defer = defers.next();
           var result = {
             content: [],
             meta: {totalCount: 10, chunkSize: chunkSize}
           };
           for (var i = 0; i < chunkSize; i++) {
-            var childrenStart = 10 * (chunkIndex + 1);
+            //var childrenStart = 10 * (chunkIndex + 1);
             result.content.push({
               id: i, firstLevel: 'firstLevel-' + i, secondLevel: 'secondLevel-' + i
             });
           }
-          defer.resolve(result);
+
+          setTimeout(function () {
+            defer.resolve(result);
+          }, 10);
+
           return defer.promise;
         },
-        groupingMetadata: [{"id": "firstLevel"}, {"id": "secondLevel"}]
+        placeholder: Ember.Object.create({isLoading: true})
       }
-    });
+    }),
+    groupMeta: {
+      groupingMetadata: [{"id": "firstLevel"}, {"id": "secondLevel"}, {"id": "thirdLevel"}]
+    }
   });
+});
 
 test('top level grouping rows are in chunk', function (assert) {
   var defers = DeferPromises.create({count: 2});

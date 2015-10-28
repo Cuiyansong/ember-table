@@ -3,7 +3,7 @@ import Ember from 'ember';
 export default Ember.ArrayProxy.extend({
 
   init: function () {
-    this._super();
+    //this._super();
     this.set('content', Ember.A());
   },
 
@@ -42,13 +42,19 @@ export default Ember.ArrayProxy.extend({
    * private
    * *********************************** */
 
+  isLoading: false,
+
   _invokeLoad: function (idx) {
     let chunkIdx = this._calcChunkSize(idx);
-    if (this.load) {
-      this.load(chunkIdx).then((items) => {
+    if (this.load && !this.get('isLoading')) {
+      this.set('isLoading', true);
+      this.load(chunkIdx).then((res) => {
+        let items = Ember.get(res, 'content');
         let objects = items.map((item) => this.createChild(item));
         this.get('content').pushObjects(objects);
-        this.chunkDidLoad(items);
+        this.chunkDidLoad(res);
+      }).finally(() => {
+        this.set('isLoading', false);
       });
     }
   },
