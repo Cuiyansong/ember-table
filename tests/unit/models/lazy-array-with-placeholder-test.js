@@ -4,7 +4,7 @@ import LazyArrayWithPlaceholder from 'ember-table/models/lazy-array-with-placeho
 
 module('Unit | Model | lazy array with placeholder', {});
 
-let placeholder = new Object();
+let placeholder = Ember.Object.create();
 
 test('init with placeholder', (assert) => {
   let arr = LazyArrayWithPlaceholder.create({placeholder});
@@ -16,7 +16,7 @@ test('objectAt trigger load', (assert) => {
   assert.expect(1);
   let load = function (chunkIndex) {
     assert.equal(chunkIndex, 0, 'chunk index should be 0.');
-    return new Promise((resolve) => resolve(['a', 'b']));
+    return new Ember.RSVP.Promise((resolve) => resolve(['a', 'b']));
   };
   let arr = LazyArrayWithPlaceholder.create({placeholder, load});
   arr.objectAt(0);
@@ -29,7 +29,7 @@ test('chunkDidLoad is triggered when chunk is loaded', (assert) => {
 
   let load = function (chunkIndex) {
     assert.equal(chunkIndex, 0, 'chunk index should be 0.');
-    return new Promise((resolve) => resolve(['a', 'b']));
+    return new Ember.RSVP.Promise((resolve) => resolve(['a', 'b']));
   };
   let chunkDidLoad = () => {
     assert.ok(true, 'chunkDidLoad is triggered');
@@ -47,7 +47,7 @@ test('isCompeted', (assert) => {
   assert.expect(2);
 
   let load = function () {
-    return new Promise((resolve) => resolve(['a', 'b']));
+    return new Ember.RSVP.Promise((resolve) => resolve(['a', 'b']));
   };
   let chunkDidLoad = () => {
     assert.ok(arr.get('length'), 'should be 2');
@@ -59,19 +59,39 @@ test('isCompeted', (assert) => {
   arr.objectAt(0);
 });
 
-test('itemClass', (assert) => {
-  let itemClass = Ember.Object.extend({isItem: true});
+test('create child', (assert) => {
+  let createChild = (content) => {
+    Ember.set(content, 'isItem', true);
+    return content;
+  };
   let arr;
   let done = assert.async();
   let load = function () {
-    return new Promise((resolve) => resolve([{name: 'Test'}]));
+    return new Ember.RSVP.Promise((resolve) => resolve([{name: 'Test'}]));
   };
   let chunkDidLoad = () => {
-    assert.ok(arr.objectAt(0).get('isItem'));
+    assert.ok(Ember.get(arr.objectAt(0), 'isItem'));
     done();
   };
 
-  arr = LazyArrayWithPlaceholder.create({placeholder, load, chunkDidLoad, totalCount: 2, itemClass});
+  arr = LazyArrayWithPlaceholder.create({placeholder, load, chunkDidLoad, totalCount: 2, createChild});
+  arr.objectAt(0);
+});
+
+test('set totalCount and chunkSize from loaded data', (assert) => {
+  let done = assert.async();
+  let load = function () {
+    let result = Ember.ArrayProxy.create([{name: 'Test'}]);
+    result.set('meta', {totalCount: 10, chunkSize: 5});
+    return new Ember.RSVP.Promise((resolve) => resolve(result));
+  };
+
+  let arr = LazyArrayWithPlaceholder.create({placeholder, load, chunkDidLoad: function(res) {
+    this.setProperties(res.get('meta'));
+    assert.equal(arr.get('totalCount'), 10);
+    assert.equal(arr.get('chunkSize'), 5);
+    done();
+  }});
   arr.objectAt(0);
 });
 

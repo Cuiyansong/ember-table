@@ -14,15 +14,13 @@ export default Ember.ArrayProxy.extend({
   // max array length
   totalCount: 1,
 
-  itemClass: null,
-
   chunkSize: 1,
 
   // should be used by outer class which will know whether content changed or not.
   chunkDidLoad: Ember.K,
 
   objectAt: function (idx) {
-    if (this.get('_contentLength') == idx) {
+    if (this.get('_contentLength') === idx) {
       this._invokeLoad(idx);
       return this.get('placeholder');
     }
@@ -38,6 +36,8 @@ export default Ember.ArrayProxy.extend({
     return this.get('_contentLength') === this.get('totalCount');
   }),
 
+  createChild: (content) => content,
+
   /* ***********************************
    * private
    * *********************************** */
@@ -46,16 +46,17 @@ export default Ember.ArrayProxy.extend({
     let chunkIdx = this._calcChunkSize(idx);
     if (this.load) {
       this.load(chunkIdx).then((items) => {
-        this.get('content').pushObjects(this._createItems(items));
+        let objects = items.map((item) => this.createChild(item));
+        this.get('content').pushObjects(objects);
         this.chunkDidLoad(items);
       });
     }
   },
 
-  _createItems: function (contents) {
-    var itemClass = this.get('itemClass');
-    return (!itemClass || !contents) ? contents : contents.map((item) => itemClass.create(item));
-  },
+  //_createItems: function (contents) {
+  //  var itemClass = this.get('itemClass');
+  //  return (!itemClass || !contents) ? contents : contents.map((item) => itemClass.create(item));
+  //},
 
   _calcChunkSize: function (idx) {
     return Math.floor(idx / this.get('chunkSize'));
