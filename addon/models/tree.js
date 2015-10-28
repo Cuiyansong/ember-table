@@ -59,7 +59,14 @@ let Tree = Ember.ObjectProxy.extend({
 
   parent: null,
 
-  query: null,
+  path: Ember.computed('parent.path', function () {
+    let content = this.get('content');
+    if (content) {
+      let parentPath = this.get('parent.path') || [];
+      return parentPath.concat([content]);
+    }
+    return [];
+  }),
 
   children: Ember.computed('meta.load', function () {
     let meta = this.get('meta');
@@ -67,7 +74,9 @@ let Tree = Ember.ObjectProxy.extend({
     let placeholder = this.get('meta.placeholder');
     let childLevel = this.get('level') + 1;
     return LazyArrayWithPlaceholder.create({
-      load,
+      load: (chunkIndex) => {
+        return load(chunkIndex, this.get('path'));
+      },
       placeholder,
       createChild: (content) => Tree.create({
         content,

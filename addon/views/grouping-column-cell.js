@@ -26,18 +26,15 @@ export default TableCell.extend(
   _defaultGroupIndicatorViewName: 'grouped-row-indicator',
 
   hasChildren: Ember.computed(function() {
-    return this.get('row.hasChildren') || this.get('expandLevel') < this.get('tableComponent.groupingMetadata.length');
+    return this.get('row.hasChildren') || this.get('row.level') < this.get('tableComponent.groupingMetadata.length');
   }).property('groupingLevel', 'tableComponent.groupingMetadata.length'),
 
-  expandLevel: Ember.computed.oneWay('row.expandLevel'),
+  expandLevel: Ember.computed('row.level', 'tableComponent.hasTotalRow', function () {
+    let level = this.getWithDefault('row.level', 0);
+    return this.get('tableComponent.hasTotalRow') ? level + 1 : level;
+  }),
 
-  groupingLevel: Ember.computed(function() {
-    var hasGrandTotalRow = this.get('tableComponent.hasGrandTotalRow');
-    var expandLevel = this.get('expandLevel');
-    var newVar = hasGrandTotalRow ? expandLevel - 1 : expandLevel;
-    console.log('groupingLevel', newVar, this.get('tableComponent.groupingMetadata.length') - 1);
-    return newVar;
-  }).property('expandLevel', 'tableComponent.hasGrandTotalRow'),
+  groupingLevel: Ember.computed.alias('row.groupingLevel'),
 
   actions: {
     toggleExpansionState: function() {
@@ -56,7 +53,7 @@ export default TableCell.extend(
 
   "padding-left": Ember.computed(function () {
     var groupIndicatorWidth = this.get('groupIndicatorWidth');
-    var numOfGroupIndicators = this.get('expandLevel') + 1; //expandLevel is zero based
+    var numOfGroupIndicators = this.get('expandLevel');
     return numOfGroupIndicators * groupIndicatorWidth + 5;
   }).property('expandLevel', 'groupIndicatorWidth'),
 

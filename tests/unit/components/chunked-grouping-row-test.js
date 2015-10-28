@@ -87,12 +87,12 @@ test('collapse chunked top level rows', function (assert) {
   });
 });
 
-moduleForEmberTable('Given a table with 3 chunked group row data', function subject(groupMeta) {
+moduleForEmberTable('Given a table with 3 chunked group row data', function subject({groupMeta, content}) {
   return EmberTableFixture.create({
     height: 90,
     width: 700,
-    content: [],
-    groupMeta: groupMeta
+    content,
+    groupMeta
   });
 });
 
@@ -101,24 +101,30 @@ test('load top level chunk data in need', function (assert) {
   var chunkSize = 5;
   var loadedChunkCount = 0;
   var component = this.subject({
-      loadChildren: function getChunk(pageIndex, parentQuery) {
-        var defer = defers.next();
-        loadedChunkCount++;
-        var result = [];
-        for (var i = 0; i < chunkSize; i++) {
-          var childrenStart = 10 * (pageIndex + 1);
-          result.push({
-            id: i, firstLevel: 'firstLevel-' + i, secondLevel: 'secondLevel-' + i
-          });
+      content: Tree.create({
+        meta: {
+          load: function getChunk(pageIndex, parentQuery) {
+            var defer = defers.next();
+            loadedChunkCount++;
+            var result = [];
+            for (var i = 0; i < chunkSize; i++) {
+              var childrenStart = 10 * (pageIndex + 1);
+              result.push({
+                id: i, firstLevel: 'firstLevel-' + i, secondLevel: 'secondLevel-' + i
+              });
+            }
+            defer.resolve({content: result, meta: {totalCount: 15, chunkSize: 5}});
+            return defer.promise;
+          },
+          placeholder: Ember.Object.create({isLoading: true})
         }
-        defer.resolve({content: result, meta: {totalCount: 15, chunkSize: 5}});
-        return defer.promise;
-      },
-      groupingMetadata: [{"id": "firstLevel"}, {"id": "secondLevel"}]
+      }),
+      groupMeta: {
+        groupingMetadata: [{"id": "firstLevel"}, {"id": "secondLevel"}]
+      }
     });
 
   this.render();
-
   return defers.ready(function () {
     assert.equal(loadedChunkCount, 1, 'should only load first chunk');
   });
@@ -127,39 +133,50 @@ test('load top level chunk data in need', function (assert) {
 test('show grouping name in grouping column', function (assert) {
   var defers = DeferPromises.create({count: 2});
   var chunkSize = 5;
+  var loadedChunkCount = 0;
   var component = this.subject({
-      loadChildren: function getChunk(chunkIndex, parentQuery) {
-        var defer = defers.next();
-        var result = [];
-        for (var i = 0; i < chunkSize; i++) {
-          result.push({ id: i, firstLevel: 'firstLevel-' + i, secondLevel: 'secondLevel-' + i});
-        }
-        defer.resolve({content: result, meta: {totalCount: 15, chunkSize: chunkSize}});
-        return defer.promise;
-      },
-      groupingMetadata: [{id: 'firstLevel'}, {id: 'secondLevel'}]
-    });
-  var helper = EmberTableHelper.create({_assert: assert, _component: component});
+    content: Tree.create({
+      meta: {
+        load: function getChunk(pageIndex, parents) {
+          var defer = defers.next();
+          loadedChunkCount++;
+          var result = [];
+          for (var i = 0; i < chunkSize; i++) {
+            var childrenStart = 10 * (pageIndex + 1);
+            result.push({
+              id: i, firstLevel: 'firstLevel-' + i, secondLevel: 'secondLevel-' + i
+            });
+          }
+          defer.resolve({content: result, meta: {totalCount: 15, chunkSize: 5}});
+          return defer.promise;
+        },
+        placeholder: Ember.Object.create({isLoading: true})
+      }
+    }),
+    groupMeta: {
+      groupingMetadata: [{"id": "firstLevel"}, {"id": "secondLevel"}]
+    }
+  });
 
   this.render();
-
   defers.ready(function () {
-    var firstRowGroupingName = helper.fixedBodyCell(0, 0).text().trim();
+    var firstRowGroupingName = component.fixedBodyCell(0, 0).text().trim();
     assert.equal(firstRowGroupingName, "firstLevel-0", 'it should show first level grouping name');
-    helper.rowGroupingIndicator(0).click();
+    component.rowGroupingIndicator(0).click();
   }, [0]);
 
   return defers.ready(function () {
-    var secondRowGroupingName = helper.fixedBodyCell(1, 0).text().trim();
+    var secondRowGroupingName = component.fixedBodyCell(1, 0).text().trim();
     assert.equal(secondRowGroupingName, "secondLevel-0", 'it should show second level grouping name');
   });
 });
 
-moduleForEmberTable('Given a table with 1 chunked data', function subject(groupMeta) {
+moduleForEmberTable('Given a table with 1 chunked data', function subject({groupMeta, content}) {
   return EmberTableFixture.create({
     height: 90,
     width: 700,
-    groupMeta: groupMeta
+    content,
+    groupMeta
   });
 });
 
@@ -167,25 +184,33 @@ test('load chunked data', function (assert) {
   var chunkCount = 0;
   var defers = DeferPromises.create({count: 2});
   var component = this.subject({
-      loadChildren: function getChunk() {
-        var defer = defers.next();
-        var result = [];
-        for (var i = 0; i < 1; i++) {
-          result.push({
-            id: 'chunked-' + chunkCount,
-            firstLevel: 'firstLevel-' + i,
-            secondLevel: 'secondLevel-' + i
-          });
-        }
-        defer.resolve({content: result, meta: {totalCount: 1, chunkSize: 1}});
-        chunkCount++;
-        return defer.promise;
-      },
+    content: Tree.create({
+      meta: {
+        load: function () {
+          var defer = defers.next();
+          var result = [];
+          for (var i = 0; i < 1; i++) {
+            result.push({
+              id: 'chunked-' + chunkCount,
+              firstLevel: 'firstLevel-' + i,
+              secondLevel: 'secondLevel-' + i
+            });
+          }
+          defer.resolve({content: result, meta: {totalCount: 1, chunkSize: 1}});
+          chunkCount++;
+          return defer.promise;
+        },
+        placeholder: Ember.Object.create({isLoading: true})
+      }
+
+    }),
+    groupMeta: {
       groupingMetadata: [{id: 'firstLevel'}, {id: 'secondLevel'}]
     }
-  );
+  });
   var helper = EmberTableHelper.create({_assert: assert, _component: component});
   this.render();
+
 
   defers.ready(function () {
    var firstLevelRowCell = helper.bodyCell(0,0).text().trim();

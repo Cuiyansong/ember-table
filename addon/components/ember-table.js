@@ -8,7 +8,6 @@ import GroupRow from 'ember-table/controllers/group-row';
 import ColumnDefinition from 'ember-table/models/column-definition';
 import SortingColumns from 'ember-table/models/sorting-columns';
 import computed from 'ember-new-computed';
-import Tree from 'ember-table/models/tree';
 import TreeRootController from 'ember-table/controllers/tree-root';
 
 export default Ember.Component.extend(

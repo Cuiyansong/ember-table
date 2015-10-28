@@ -3,6 +3,7 @@ import Row from './row';
 import SubRowArray from './sub-row-array';
 import LazyGroupRowArray from '../models/lazy-group-row-array';
 import RowPath from 'ember-table/models/row-path';
+import Grouping from 'ember-table/models/grouping';
 
 var GroupRow = Row.extend({
 
@@ -205,16 +206,24 @@ var GroupRow = Row.extend({
 
     //isExpanded: false,
 
-    expandLevel: Ember.computed.oneWay('content.level'),
+    groupingLevel: Ember.computed.oneWay('content.level'),
 
     grandTotalTitle: Ember.computed.oneWay('target.groupMeta.grandTotalTitle'),
 
-    grouping: null,
+    groupingMetadata: null,
+
+    grouping: Ember.computed('groupingMetadata.[]', 'level', function () {
+      let groupingMetadata = this.get('groupingMetadata');
+      return Grouping.create({
+        grouper: groupingMetadata.objectAt(this.get('level') - 1)
+      });
+    }),
+
 
     groupName: Ember.computed(function () {
-      if (this.get('grouping.isGrandTotal')) {
-        return this.get('grandTotalTitle');
-      }
+      //if (this.get('grouping.isGrandTotal')) {
+      //  return this.get('grandTotalTitle');
+      //}
       return this.get('content.' + this.get('grouping.key'));
     }).property('content', 'content.isLoaded', 'grouping.key'),
 

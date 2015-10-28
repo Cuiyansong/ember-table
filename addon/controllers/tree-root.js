@@ -5,6 +5,7 @@ export default Ember.ObjectProxy.extend({
   init: function () {
     this._super();
     this.set('subControllers', Ember.A());
+    this.set('content.isVirtual', !this.get('target.hasTotalRow'));
   },
 
   subControllers: null,
@@ -13,13 +14,18 @@ export default Ember.ObjectProxy.extend({
 
   content: null,
 
+  grandTotalClass: null,
+
   objectAt: function (idx) {
     let content = this.get('content').objectAt(idx);
     return this.get('itemController').create({
       content,
+      groupingMetadata: this.get('groupingMetadata'),
       parentController: this.get('target')
     });
   },
+
+  groupingMetadata: Ember.computed.alias('target.groupMeta.groupingMetadata'),
 
   //controllerAt: function(idx, object) {
   //  console.log(idx, object);

@@ -2,41 +2,39 @@ import Ember from 'ember';
 
 var Grouping = Ember.Object.extend({
   groupingMetadata: null,
-  groupingLevel: null,
-  isLeafParent: Ember.computed(function () {
-    return this.get('groupingLevel') === this.get('groupingMetadata.length') - 2;
-  }).property('groupingLevel', 'groupingMetadata.[]'),
+  //groupingLevel: null,
+  //isLeafParent: Ember.computed(function () {
+  //  return this.get('groupingLevel') === this.get('groupingMetadata.length') - 2;
+  //}).property('groupingLevel', 'groupingMetadata.[]'),
 
-  isGroup: Ember.computed(function () {
-    return this.get('groupingLevel') < this.get('groupingMetadata.length') - 1;
-  }).property('groupingMetadata.[]', 'groupingLevel'),
+  //isGroup: Ember.computed(function () {
+  //  return this.get('groupingLevel') < this.get('groupingMetadata.length') - 1;
+  //}).property('groupingMetadata.[]', 'groupingLevel'),
 
   key: Ember.computed.oneWay('grouper.id'),
 
   sortDirection: Ember.computed.oneWay('grouper.sortDirection'),
 
-  grouper: Ember.computed(function() {
-    return this.getGrouper(this.get('groupingLevel'));
-  }).property('groupingLevel', 'groupingMetadata.[]'),
+  grouper: null,
 
-  getGrouper: function(groupingLevel) {
-    return groupingLevel >= 0 ? this.get('groupingMetadata').objectAt(groupingLevel) : undefined;
-  },
+  //getGrouper: function(groupingLevel) {
+  //  return groupingLevel >= 0 ? this.get('groupingMetadata').objectAt(groupingLevel) : undefined;
+  //},
 
-  isGrandTotal: Ember.computed.equal('groupingLevel', -1),
+  //isGrandTotal: Ember.computed.equal('groupingLevel', 0),
 
   isGrandTotalExpanded: false,
 
   grandTotalClass: null,
 
-  nextLevelGrouping: Ember.computed(function () {
-    return Grouping.create({
-      groupingMetadata: this.get('groupingMetadata'),
-      groupingLevel: this.get('groupingLevel') + 1,
-      isGrandTotalExpanded: this.get('isGrandTotalExpanded'),
-      grandTotalClass: this.get('grandTotalClass')
-    });
-  }).property('groupingLevel', 'groupingMetadata.@each'),
+  //nextLevelGrouping: Ember.computed(function () {
+  //  return Grouping.create({
+  //    groupingMetadata: this.get('groupingMetadata'),
+  //    groupingLevel: this.get('groupingLevel') + 1,
+  //    isGrandTotalExpanded: this.get('isGrandTotalExpanded'),
+  //    grandTotalClass: this.get('grandTotalClass')
+  //  });
+  //}).property('groupingLevel', 'groupingMetadata.@each'),
 
   sortContent: function(arrayContent) {
     var sortFactor = this.get('sortFactor');
