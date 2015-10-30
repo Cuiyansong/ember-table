@@ -3,16 +3,19 @@ import { test } from 'ember-qunit';
 import moduleForEmberTable from '../../helpers/module-for-ember-table';
 import EmberTableFixture from '../../fixture/ember-table';
 import EmberTableHelper from '../../helpers/ember-table-helper';
+import Tree from 'ember-table/models/tree';
 
 moduleForEmberTable('grouping column cell', function () {
+  var content = [{
+    accountSection: "this is a very long string"
+  }];
   return EmberTableFixture.create({
     height: 330,
     width: 700,
-    content:[
-        {
-          accountSection: "this is a very long string"
-        }
-      ],
+    content: Tree.create({
+      meta: {},
+      content: {children: content}
+    }),
     groupMeta: {
       groupingMetadata: [
         {

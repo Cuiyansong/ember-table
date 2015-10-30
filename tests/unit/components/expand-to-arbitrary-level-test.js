@@ -3,14 +3,27 @@ import { test } from 'ember-qunit';
 import moduleForEmberTable from '../../helpers/module-for-ember-table';
 import EmberTableFixture from '../../fixture/ember-table';
 import GroupedRowDataProvider from '../../fixture/grouped-row-data-provider';
+import DefersPromise from '../../fixture/defer-promises';
+import TreeDataProvider from '../../fixture/tree-data-provider';
+import Tree from 'ember-table/models/tree';
 
 moduleForEmberTable('Unit | Components | expand to arbitrary level', function (options) {
+  let defers = DefersPromise.create();
+  var groupingMetadata = [{id: 'accountSection'}, {id: 'accountType'}, {id: 'accountCode'}];
+  let treeData = TreeDataProvider.create({
+    chunkSize: 2,
+    totalCount: 2,
+    defers,
+    groupingMetadata
+  });
   return EmberTableFixture.create({
     height: options.height,
-    groupMeta: GroupedRowDataProvider.create({
-      chunkSize: 2,
-      totalCount: 2,
-      groupingMetadata: [{id: 'accountSection'}, {id: 'accountType'}, {id: 'accountCode'}]
+    groupMeta: {groupingMetadata},
+    content: Tree.create({
+      meta: {
+        load: treeData.get('load'),
+        placeholder: Ember.Object.create({isLoading: true})
+      }
     })
   });
 });

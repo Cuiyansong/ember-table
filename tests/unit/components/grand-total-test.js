@@ -4,26 +4,32 @@ import moduleForEmberTable from '../../helpers/module-for-ember-table';
 import EmberTableFixture from '../../fixture/ember-table';
 import EmberTableHelper from '../../helpers/ember-table-helper';
 import DeferPromises from '../../fixture/defer-promises';
+import TreeDataProvider from '../../fixture/tree-data-provider';
+import Tree from 'ember-table/models/tree';
 
 moduleForEmberTable('grand total', function () {
+  let content = [{
+    id: 1,
+    children: [
+      {
+        id: 11
+      }
+    ]
+  }];
+  let loadTotalRowDefer = Ember.RSVP.defer();
+  loadTotalRowDefer.resolve({
+    groupName: "Total",
+    children: content
+  });
   return EmberTableFixture.create({
     height: 330,
     width: 700,
-    content: Ember.ArrayProxy.create({
-      content: [
-        {
-          id: 1,
-          children: [
-            {
-              id: 11
-            }
-          ]
-        }
-      ]
+    content: Tree.create({
+      content: loadTotalRowDefer.promise,
+      meta: {}
     }),
     groupMeta: {
-      groupingMetadata: [{id: "accountSection"}, {id: "accountType"}],
-      grandTotalTitle: "Total"
+      groupingMetadata: [{id: "accountSection"}, {id: "accountType"}]
     }
   });
 });
@@ -31,9 +37,10 @@ moduleForEmberTable('grand total', function () {
 test('render grand total cell', function (assert) {
   var component = this.subject();
   this.render();
-  var helper = EmberTableHelper.create({_assert: assert, _component: component});
 
-  assert.equal(helper.fixedBodyCell(0, 0).text().trim(), 'Total');
+  return component.ready(() => {
+    assert.equal(component.fixedBodyCell(0, 0).text().trim(), 'Total');
+  });
 });
 
 test('render grouping indicator', function (assert) {

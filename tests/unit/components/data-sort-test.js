@@ -1275,16 +1275,6 @@ moduleForEmberTable('Unit | Component | data sort | Grand total row as ember-tab
       }
     })
   });
-  //return EmberTableFixture.create({
-  //  height: options.height,
-  //  groupMeta: GroupedRowDataProvider.create({
-  //    delayTime: options.delayTime || 0,
-  //    hasTotalRow: true,
-  //    groupingMetadata: [{id: 'accountSection'}, {id: "accountType"}],
-  //    grandTotalTitle: 'Total'
-  //  }),
-  //  _assert: options._assert
-  //});
 });
 
 test('regular click to sort completed data', function (assert) {

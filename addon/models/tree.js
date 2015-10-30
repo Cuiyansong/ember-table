@@ -47,8 +47,8 @@ let Tree = Ember.ObjectProxy.extend({
 
   initExpandedState: function () {
     let expandedStates = this.get('meta.expandedStates');
-    if (expandedStates) {
-      let id = this.get('id');
+    let id = this.get('id');
+    if (expandedStates && id) {
       this.set('isExpanded', expandedStates.get(id.toString()));
     }
   },
@@ -72,8 +72,11 @@ let Tree = Ember.ObjectProxy.extend({
 
   _saveToExpandState: function (isExpanded) {
     this.set('isExpanded', isExpanded);
-    let expandedStates = this.get('meta.expandedStates');
-    expandedStates.set(this.get('id').toString(), isExpanded);
+    var id = this.get('id');
+    if (id) {
+      let expandedStates = this.get('meta.expandedStates');
+      expandedStates.set(id.toString(), isExpanded);
+    }
   },
 
   objectAt: function (idx) {
@@ -167,7 +170,7 @@ let Tree = Ember.ObjectProxy.extend({
   }),
 
   loadedChildren: Ember.computed('meta.load', function () {
-    let load = this.get('meta.load');
+    let load = this.get('meta.load') || (() => Ember.RSVP.defer().promise);
     let placeholder = this.get('meta.placeholder');
     return LazyArrayWithPlaceholder.create({
       load: (chunkIndex) => {
