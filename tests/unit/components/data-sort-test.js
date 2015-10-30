@@ -90,7 +90,11 @@ test('sort by id:asc, activity:desc', function(assert) {
 moduleForEmberTable('Unit | Component | data sort | A grouped JavaScript array as ember-table content', function (options) {
   var subject = EmberTableFixture.create({
     _assert: options._assert,
-    content: options.content,
+    content: Tree.create({
+      isVirtual: true,
+      content: {children: options.content},
+      meta: {}
+    }),
     groupMeta: {groupingMetadata: [{id: 'accountSection'}, {id: 'accountType'}, {id: 'accountCode'}]}
   });
   if (options.height) {
@@ -246,7 +250,11 @@ moduleForEmberTable('Unit | Component | data sort | Sort a normal JavaScript arr
   };
 
   var subject = EmberTableFixture.create({
-    content: content,
+    content: Tree.create({
+      isVirtual: true,
+      content: {children: content},
+      meta: {}
+    }),
     groupMeta: groupMeta
   });
   if (options && options.height) {
@@ -601,12 +609,21 @@ test('multiple columns sort with complete data', function(assert) {
 });
 
 moduleForEmberTable('Unit | Component | data sort | lazy-grouped-row-array as ember-table content', function (options) {
+  let groupingMetadata = [{id: 'accountSection'}, {id: 'accountType'}, {id: "accountCode"}];
+  let treeData = TreeDataProvider.create({
+    groupingMetadata,
+    defers: DefersPromise.create()
+  });
+
   return EmberTableFixture.create({
     _assert: options._assert,
     height: options.height,
-    groupMeta: GroupedRowDataProvider.create({
-      delayTime: options.delayTime || 0,
-      groupingMetadata: [{id: 'accountSection'}, {id: 'accountType'}]
+    groupMeta: {groupingMetadata},
+    content: Tree.create({
+      meta: {
+        load: treeData.get('load'),
+        placeholder: Ember.Object.create({isLoading: true})
+      }
     })
   });
 });
@@ -995,6 +1012,7 @@ test('sort quickly twice', function (assert) {
     var idHeaderCell = component.getHeaderCell(0);
     idHeaderCell.click();
     idHeaderCell.click();
+    idHeaderCell.click();
   });
 
   return component.ready(function(){
@@ -1061,10 +1079,11 @@ moduleForEmberTable('Unit | Component | data sort | sort lazy-grouped-row-array 
   let groupingMetadata = [{id: 'accountSection'}, {id: 'accountType'}, {id: "accountCode"}];
   let treeData = TreeDataProvider.create({
     groupingMetadata,
-    defers: options.defers
+    defers: DefersPromise.create()
   });
 
   return EmberTableFixture.create({
+    _assert: options._assert,
     height: options.height,
     groupMeta: {groupingMetadata},
     content: Tree.create({
@@ -1074,17 +1093,23 @@ moduleForEmberTable('Unit | Component | data sort | sort lazy-grouped-row-array 
       }
     })
   });
+  //return EmberTableFixture.create({
+  //  height: options.height,
+  //  groupMeta: GroupedRowDataProvider.create({
+  //    delayTime: options.delayTime || 0,
+  //    groupingMetadata: [{id: 'accountSection'}, {id: 'accountType'}, {id: "accountCode"}]
+  //  })
+  //});
 });
 
 test('sort by grouper accountSection', function(assert) {
-  let defers = DefersPromise.create();
-  var component = this.subject({height: 120, defers});
+  var component = this.subject({height: 120});
   this.render();
 
   component.ready(function () {
     Ember.run(component, 'setGrouperSortDirection', 0, 'desc');
   });
-  assert.async();
+
   return component.ready(function() {
     assert.deepEqual(component.cellsContent([0, 1, 2], [0, 1]), [
       ['as-10', '10'],
@@ -1094,111 +1119,122 @@ test('sort by grouper accountSection', function(assert) {
   });
 });
 
-//test('sort by grouper accountSection in client side with expand state', function(assert) {
-//  var component = this.subject({height: 1000});
-//  this.render();
-//
-//  component.clickGroupIndicator(0);
-//
-//  return component.ready(function() {
-//    Ember.run(component, 'setGrouperSortDirection', 0, 'desc');
-//
-//    assert.deepEqual(component.cellsContent([7, 8, 9, 10, 11, 12], [0, 1]), [
-//      ['as-2', '2'],
-//      ['as-10', '10'],
-//      ['as-1', '1'],
-//      ['at-102', '102'],
-//      ['at-101', '101'],
-//      ['at-105', '105']
-//    ]);
-//  });
-//});
-//
-//test('sort by grouper accountSection in server side with expand state', function(assert) {
-//  var component = this.subject({height: 120});
-//  this.render();
-//
-//  component.clickGroupIndicator(0);
-//
-//  component.ready(function() {
-//    Ember.run(component, 'setGrouperSortDirection', 0, 'desc');
-//  });
-//
-//  component.scrollRows(7);
-//
-//  return component.ready(function() {
-//    var indicator = component.cellWithContent('as-1').groupIndicator();
-//    assert.ok(indicator.hasClass('unfold'));
-//  });
-//});
-//
-//test('sort by grouper accountSection in server side with expand state of two levels', function(assert) {
-//  var component = this.subject({height: 120});
-//  this.render();
-//
-//  component.clickGroupIndicator(0);
-//  component.clickGroupIndicator(1);
-//
-//  component.ready(function() {
-//    Ember.run(component, 'setGrouperSortDirection', 0, 'desc');
-//  });
-//
-//  component.scrollRows(10);
-//
-//  return component.ready(function() {
-//    var indicator = component.cellWithContent('at-102').groupIndicator();
-//    assert.ok(indicator.hasClass('unfold'));
-//  });
-//});
-//
-//test('expand grouping row after sorted by grouper accountSection', function(assert) {
-//  var component = this.subject({height: 1000});
-//  this.render();
-//
-//  component.ready(function () {
-//    Ember.run(component, 'setGrouperSortDirection', 1, 'desc');
-//  });
-//  component.clickGroupIndicator(0);
-//
-//  return component.ready(function() {
-//    assert.deepEqual(component.cellsContent([0, 1, 2, 3, 4], [0, 1]), [
-//      ['as-1', '1'],
-//      ['at-110', '110'],
-//      ['at-109', '109'],
-//      ['at-108', '108'],
-//      ['at-107', '107']
-//    ]);
-//  });
-//});
-//
-//test('sort by column after expand and sorted by grouper accountSection', function(assert) {
-//  var component = this.subject({height: 120});
-//  this.render();
-//
-//  component.ready(function () {
-//    Ember.run(component, 'setGrouperSortDirection', 0, 'desc');
-//  });
-//
-//  component.clickGroupIndicator(0);
-//  component.clickHeaderCell(1);
-//
-//  return component.ready(function() {
-//    assert.deepEqual(component.cellsContent([0, 1, 2, 3], [0, 1]), [
-//      ['as-10', '10'],
-//      ['at-101', '101'],
-//      ['at-102', '102'],
-//      ['at-103', '103']
-//    ]);
-//  });
-//});
+test('sort by grouper accountSection in client side with expand state', function(assert) {
+  var component = this.subject({height: 1000});
+  this.render();
 
+  component.clickGroupIndicator(0);
+
+  return component.ready(function() {
+    Ember.run(component, 'setGrouperSortDirection', 0, 'desc');
+
+    assert.deepEqual(component.cellsContent([7, 8, 9, 10, 11, 12], [0, 1]), [
+      ['as-2', '2'],
+      ['as-10', '10'],
+      ['as-1', '1'],
+      ['at-102', '102'],
+      ['at-101', '101'],
+      ['at-105', '105']
+    ]);
+  });
+});
+
+test('sort by grouper accountSection in server side with expand state', function(assert) {
+  var component = this.subject({height: 120});
+  this.render();
+
+  component.clickGroupIndicator(0);
+
+  component.ready(function() {
+    Ember.run(component, 'setGrouperSortDirection', 0, 'desc');
+  });
+
+  component.scrollRows(7);
+
+  return component.ready(function() {
+    var indicator = component.cellWithContent('as-1').groupIndicator();
+    assert.ok(indicator.hasClass('unfold'));
+  });
+});
+
+test('sort by grouper accountSection in server side with expand state of two levels', function(assert) {
+  var component = this.subject({height: 120});
+  this.render();
+
+  component.clickGroupIndicator(0);
+  component.clickGroupIndicator(1);
+
+  component.ready(function() {
+    Ember.run(component, 'setGrouperSortDirection', 0, 'desc');
+  });
+
+  component.scrollRows(10);
+
+  return component.ready(function() {
+    var indicator = component.cellWithContent('at-102').groupIndicator();
+    assert.ok(indicator.hasClass('unfold'));
+  });
+});
+
+test('expand grouping row after sorted by grouper accountSection', function(assert) {
+  var component = this.subject({height: 1000});
+  this.render();
+
+  component.ready(function () {
+    Ember.run(component, 'setGrouperSortDirection', 1, 'desc');
+  });
+  component.clickGroupIndicator(0);
+
+  return component.ready(function() {
+    assert.deepEqual(component.cellsContent([0, 1, 2, 3, 4], [0, 1]), [
+      ['as-1', '1'],
+      ['at-110', '110'],
+      ['at-109', '109'],
+      ['at-108', '108'],
+      ['at-107', '107']
+    ]);
+  });
+});
+
+test('sort by column after expand and sorted by grouper accountSection', function(assert) {
+  var component = this.subject({height: 120});
+  this.render();
+
+  component.ready(function () {
+    Ember.run(component, 'setGrouperSortDirection', 0, 'desc');
+  });
+
+  component.clickGroupIndicator(0);
+  component.clickHeaderCell(1);
+
+  return component.ready(function() {
+    assert.deepEqual(component.cellsContent([0, 1, 2, 3], [0, 1]), [
+      ['as-10', '10'],
+      ['at-101', '101'],
+      ['at-102', '102'],
+      ['at-103', '103']
+    ]);
+  });
+});
+
+let treeData;
 moduleForEmberTable('Unit | Component | data sort | lazy group row array defects', function (options) {
+  let groupingMetadata = [{id: 'accountSection'}, {id: 'accountType'}, {id: "accountCode"}];
+  treeData = TreeDataProvider.create({
+    groupingMetadata,
+    defers: DefersPromise.create()
+  });
+
   return EmberTableFixture.create({
+    _assert: options._assert,
     height: 120,
-    groupMeta: GroupedRowDataProvider.create({
-      groupingMetadata: [{id: 'accountSection'}, {id: 'accountType'}]
-    }),
-    _assert: options._assert
+    groupMeta: {groupingMetadata},
+    content: Tree.create({
+      meta: {
+        load: treeData.get('load'),
+        placeholder: Ember.Object.create({isLoading: true})
+      }
+    })
   });
 });
 
@@ -1211,21 +1247,44 @@ test('expand second level rows twice', function(assert) {
   component.clickGroupIndicator(0);//2nd expand
 
   return component.ready(function () {
-    assert.equal(component.get('groupMeta.loadChunkCount'), 2, 'Loaded chunk count should be 2');
+    assert.equal(treeData.get('loadChunkCount'), 2, 'Loaded chunk count should be 2');
   });
 });
 
 moduleForEmberTable('Unit | Component | data sort | Grand total row as ember-table content', function (options) {
-  return EmberTableFixture.create({
-    height: options.height,
-    groupMeta: GroupedRowDataProvider.create({
-      delayTime: options.delayTime || 0,
-      hasTotalRow: true,
-      groupingMetadata: [{id: 'accountSection'}, {id: "accountType"}],
-      grandTotalTitle: 'Total'
-    }),
-    _assert: options._assert
+  let groupingMetadata = [{id: 'accountSection'}, {id: 'accountType'}, {id: "accountCode"}];
+  let treeData = TreeDataProvider.create({
+    groupingMetadata,
+    defers: DefersPromise.create()
   });
+
+  return EmberTableFixture.create({
+    _assert: options._assert,
+    height: options.height,
+    groupMeta: {
+      groupingMetadata
+    },
+    content: Tree.create({
+      content: treeData.get('loadTotalRow').then((res) => {
+        Ember.set(res, 'groupName', 'Total');
+        return res;
+      }),
+      meta: {
+        load: treeData.get('load'),
+        placeholder: Ember.Object.create({isLoading: true})
+      }
+    })
+  });
+  //return EmberTableFixture.create({
+  //  height: options.height,
+  //  groupMeta: GroupedRowDataProvider.create({
+  //    delayTime: options.delayTime || 0,
+  //    hasTotalRow: true,
+  //    groupingMetadata: [{id: 'accountSection'}, {id: "accountType"}],
+  //    grandTotalTitle: 'Total'
+  //  }),
+  //  _assert: options._assert
+  //});
 });
 
 test('regular click to sort completed data', function (assert) {
@@ -1235,7 +1294,6 @@ test('regular click to sort completed data', function (assert) {
   component.clickGroupIndicator(0);
   component.clickGroupIndicator(3);
   component.assertCellContentWhenReady(4, 0, '303', 'should unsorted before click header cell');
-
   component.clickHeaderCell(1);
   component.assertCellContentWhenReady(4, 0, '301', 'should sort ascending');
 

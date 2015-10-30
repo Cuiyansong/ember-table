@@ -11,6 +11,7 @@ StyleBindingsMixin, {
   scrollTop: null,
   startIndex: null,
   sortingColumns: null,
+  groupingMetadata: null,
 
   init: function() {
     this._super();
@@ -90,5 +91,9 @@ StyleBindingsMixin, {
         childView.prepareContent();
       }
     });
-  }, 'content.length', 'length', 'startIndex', 'sortingColumns._columns')
+  }, 'content.length', 'length', 'startIndex'),
+
+  sortConditionDidChanged: Ember.observer('sortingColumns._columns', 'groupingMetadata.@each.sortDirection', function () {
+    Ember.run.scheduleOnce('afterRender', () => this.viewportDidChange());
+  })
 });

@@ -9,6 +9,7 @@ import ColumnDefinition from 'ember-table/models/column-definition';
 import SortingColumns from 'ember-table/models/sorting-columns';
 import computed from 'ember-new-computed';
 import TreeRootController from 'ember-table/controllers/tree-root';
+import Tree from 'ember-table/models/tree';
 
 export default Ember.Component.extend(
 StyleBindingsMixin, ResizeHandlerMixin, {
@@ -60,7 +61,10 @@ StyleBindingsMixin, ResizeHandlerMixin, {
     return this.get('groupMeta.groupingMetadata') || [];
   }).property('groupMeta.groupingMetadata'),
 
-  hasTotalRow: Ember.computed.bool('groupMeta.grandTotalTitle'),
+  hasTotalRow: Ember.computed('content', function () {
+    let content = this.get('content');
+    return (content instanceof Tree) && !content.get('isVirtual');
+  }),
 
   // The number of footer rows in the table. Footer rows appear at the bottom of
   // the table and are always visible.
@@ -257,11 +261,12 @@ StyleBindingsMixin, ResizeHandlerMixin, {
       var sortingColumns = this.get('sortingColumns');
       sortingColumns.update(column, event);
       this.sendAction('sortAction', sortingColumns);
-
+      // TODO: just use for normal array of bodyContent
       var bodyContent = this.get('bodyContent');
       if (bodyContent.sort) {
         bodyContent.sort(sortingColumns);
       }
+      this.notifyPropertyChange('bodyContent.length');
       Ember.run.next(this, this.updateLayout);
     }
   },

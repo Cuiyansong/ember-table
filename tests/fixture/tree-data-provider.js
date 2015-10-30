@@ -82,28 +82,25 @@ var DataProvider = function(options) {
       return makeJsonArray(item[1], item[2]);
     });
   });
-  this.sortData = function (chunkIndex, groupingMeta, path) {
+  this.sortData = function (chunkIndex, sortingColumns, groupingMetadata, groupQuery) {
     var queryObj = {};
-    path.forEach(function(item, index) {
-      let grouper = groupingMeta.objectAt(index);
-      let key = Ember.get(grouper, 'id');
-      let value = Ember.get(item, 'id');
-      queryObj[key] = value;
+    (groupQuery.paths || []).forEach(function(x) {
+      queryObj[x.name] = x.value;
     });
     Ember.setProperties(queryObj, {chunkIndex: chunkIndex});
-    //var isSortByGrouper = groupQuery.key && groupQuery.sortDirection;
-    //if (isSortByGrouper) {
-    //  queryObj['sortName[0]'] = groupQuery.key;
-    //  queryObj['sortDirect[0]'] = groupQuery.sortDirection;
-    //}
+    var isSortByGrouper = groupQuery.grouperKey && groupQuery.grouperSortDirection;
+    if (isSortByGrouper) {
+      queryObj['sortName[0]'] = groupQuery.grouperKey;
+      queryObj['sortDirect[0]'] = groupQuery.grouperSortDirection;
+    }
     var theQueryString = toQuery(queryObj);
-    //if(!isSortByGrouper && sortingColumns && sortingColumns.get('isNotEmpty')) {
-    //  theQueryString += "&" + sortingColumns.map(function (column, index) {
-    //      return "sortDirect[%@]=%@&sortName[%@]=%@".fmt(
-    //        index, column.get("sortDirect"), index, column.get("contentPath"));
-    //    }).join("&");
-    //}
-    console.log(theQueryString);
+    if(!isSortByGrouper && sortingColumns && sortingColumns.get('isNotEmpty')) {
+      theQueryString += "&" + sortingColumns.map(function (column, index) {
+          return "sortDirect[%@]=%@&sortName[%@]=%@".fmt(
+            index, column.get("sortDirect"), index, column.get("contentPath"));
+        }).join("&");
+    }
+    //console.log('query', theQueryString);
     return sortDataMap.get(theQueryString)();
   };
 };
@@ -125,16 +122,10 @@ export default Ember.Object.extend({
   totalCount: 10,
   chunkSize: 5,
   delayTime: 0,
-  loadTotalRow: Ember.computed('hasTotalRow', function() {
-    if(!this.get('hasTotalRow')){
-      return null;
-    }
-    let self = this;
-    return () => {
-      var defer = self.get('defers').next();
-      defer.resolve({content: [{id: 'grand total'}], meta: {}});
-      return defer.promise;
-    };
+  loadTotalRow: Ember.computed(function () {
+    var defer = this.get('defers').next();
+    defer.resolve({id: 'grand total'});
+    return defer.promise;
   }),
   hasTotalRow: false,
   load: Ember.computed(function() {
@@ -144,10 +135,10 @@ export default Ember.Object.extend({
     let chunkSize = this.get('chunkSize');
     let totalCount = this.get('totalCount');
     let delayTime = this.get('delayTime');
-    return (chunkIndex, path) => {
+    return (chunkIndex, sortingColumns, groupQuery) => {
       var dataProvider = new DataProvider({columnName: self.get('columnName')});
       var defer = defers.next();
-      var content = dataProvider.sortData(chunkIndex, groupingMetadata, path);
+      var content = dataProvider.sortData(chunkIndex, sortingColumns, groupingMetadata, groupQuery);
       var result = {
         content: content.slice(0, chunkSize),
         meta: {totalCount, chunkSize}

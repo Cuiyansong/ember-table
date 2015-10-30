@@ -3,8 +3,10 @@ import Ember from 'ember';
 export default Ember.ArrayProxy.extend({
 
   init: function () {
-    //this._super();
-    this.set('content', Ember.A());
+    this._super();
+    if(!this.get('content')) {
+      this.set('content', Ember.A());
+    }
   },
 
   placeholder: null,
@@ -38,6 +40,14 @@ export default Ember.ArrayProxy.extend({
 
   createChild: (content) => content,
 
+  sort: function (cb) {
+    this.get('content').sort(cb);
+  },
+
+  clear: function () {
+    this.get('content').clear();
+  },
+
   /* ***********************************
    * private
    * *********************************** */
@@ -58,11 +68,6 @@ export default Ember.ArrayProxy.extend({
       });
     }
   },
-
-  //_createItems: function (contents) {
-  //  var itemClass = this.get('itemClass');
-  //  return (!itemClass || !contents) ? contents : contents.map((item) => itemClass.create(item));
-  //},
 
   _calcChunkSize: function (idx) {
     return Math.floor(idx / this.get('chunkSize'));

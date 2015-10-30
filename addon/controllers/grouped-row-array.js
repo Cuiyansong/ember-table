@@ -4,6 +4,7 @@ import GroupRow from './group-row';
 import Grouping from '../models/grouping';
 import LazyGroupRowArray from '../models/lazy-group-row-array';
 
+// TODO: Should be replaced by tree-root.
 export default RowArrayController.extend({
   init: function() {
     var groupMeta = this.get('groupMeta');
@@ -66,7 +67,7 @@ export default RowArrayController.extend({
 
   groupMeta: null,
 
-  sortingColumns: null,
+  _sortingColumns: null,
 
   grandTotalClass: null
 });
